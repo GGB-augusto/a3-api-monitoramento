@@ -1,0 +1,200 @@
+{
+  "info": {
+    "name": "Monitoramento de Sustentabilidade",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "empresaId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Registrar setembro",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/sustentabilidade",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"empresaId\": \"{{empresaId}}\", \"periodo\": \"2026-09\", \"consumoEnergiaKwh\": 15000, \"emissoesToneladasCO2\": 8.5, \"residuosKg\": 1200}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"empresaId\", \"teste_\" + pm.variables.replaceIn(\"{{$guid}}\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"Registro\", () => pm.expect(pm.response.json().periodo).to.eql(\"2026-09\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Registrar outubro",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/sustentabilidade",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"empresaId\": \"{{empresaId}}\", \"periodo\": \"2026-10\", \"consumoEnergiaKwh\": 13500, \"emissoesToneladasCO2\": 7.6, \"residuosKg\": 1050}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Consultar histórico",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/sustentabilidade/{{empresaId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Dois períodos ordenados\", () => { const r = pm.response.json(); pm.expect(r).to.have.lengthOf(2); pm.expect(r.map(x => x.periodo)).to.eql([\"2026-09\", \"2026-10\"]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Indicadores",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/sustentabilidade/{{empresaId}}/indicadores"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Cálculos\", () => { const r = pm.response.json(); pm.expect(r.consumoEnergiaKwh.variacaoPercentual).to.eql(-10); pm.expect(r.emissoesToneladasCO2.variacaoPercentual).to.eql(-10.59); pm.expect(r.residuosKg.variacaoPercentual).to.eql(-12.5); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Duplicidade",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/sustentabilidade",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"empresaId\": \"{{empresaId}}\", \"periodo\": \"2026-09\", \"consumoEnergiaKwh\": 15000, \"emissoesToneladasCO2\": 8.5, \"residuosKg\": 1200}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Mês inválido",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/sustentabilidade",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"empresaId\": \"{{empresaId}}\", \"periodo\": \"2026-13\", \"consumoEnergiaKwh\": 15000, \"emissoesToneladasCO2\": 8.5, \"residuosKg\": 1200}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
