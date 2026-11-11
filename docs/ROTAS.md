@@ -12,6 +12,9 @@ Base local: `http://localhost:3000`. O termo correto é PATCH.
 | src/sustentabilidade/dto/update-registro.dto.ts | Campos exigidos no PUT e opcionais no PATCH |
 | src/sustentabilidade/memory.repository.ts | Dados temporários em memória |
 | src/firebase/firestore.repository.ts | Dados persistidos no Firestore |
+| src/sustentabilidade/supabase.repository.ts | Dados persistidos no Supabase |
+| src/sustentabilidade/supabase-auth.guard.ts | Autenticação por token no modo Supabase |
+| supabase/schema.sql | Tabelas e políticas de acesso do Supabase |
 | postman/monitoramento.postman_collection.json | Requisições e verificações no Postman |
 | requests.http | Exemplos executáveis no VS Code com REST Client |
 
@@ -99,5 +102,13 @@ Métricas devem ser números finitos entre zero e Number.MAX_SAFE_INTEGER.
 Strings numéricas, valores negativos, null e campos desconhecidos são rejeitados.
 `empresaId` aceita de 1 a 100 letras, números, hífens ou sublinhados.
 
-A API atende localmente e não possui autenticação. A execução em memória é destinada
-a desenvolvimento e demonstração. Testes automatizados locais não comprovam a conexão com Firebase.
+## Autenticação
+
+Com `STORAGE_MODE=supabase`, todas as rotas exigem o cabeçalho
+`Authorization: Bearer <access_token>` e só acessam os dados da empresa autenticada.
+Sem token, ou com sessão expirada, a API retorna 401. Nos modos `memory` e `firestore`
+as rotas não exigem autenticação.
+
+A API atende localmente. A execução em memória é destinada a desenvolvimento e
+demonstração. Testes automatizados locais usam o modo memória e não comprovam a
+conexão com o Firebase ou com o Supabase.

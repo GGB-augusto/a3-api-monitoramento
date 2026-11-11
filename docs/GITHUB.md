@@ -1,24 +1,27 @@
 # Organização do repositório — semestre 2026/2
 
-Use commits na data real de cada alteração. Os comandos abaixo são um roteiro, não um histórico de trabalho já realizado. O pacote não contém um repositório remoto nem commits atribuídos aos integrantes.
+Repositório oficial: https://github.com/GGB-augusto/a3-api-monitoramento (branch `main`).
 
-```powershell
-git init -b main
-git config user.name "SEU NOME"
-git config user.email "SEU EMAIL"
-git add .
-git commit -m "feat: implementar API de sustentabilidade e testes"
-git switch -c develop
+## Enviar uma nova alteração
+
+```cmd
+git clone https://github.com/GGB-augusto/a3-api-monitoramento.git
+cd a3-api-monitoramento
+git switch -c feature/nome-da-alteracao
 ```
 
-Para próximas alterações, parta de `develop` e crie branches como `feature/registro`, `feature/indicadores` e `test/endpoints`. Faça os commits após concluir e validar as alterações reais. Abra pull requests para `develop` e integre a versão aprovada em `main`.
+Faça as alterações, valide com `npm test` e `npm run build` e envie:
 
-Crie um repositório vazio no GitHub e substitua a URL abaixo pela URL real:
-
-```powershell
-git remote add origin https://github.com/SEU_USUARIO/api-monitoramento.git
-git push -u origin main
-git push -u origin develop
+```cmd
+git add -A
+git status
+git commit -m "tipo: descrição curta da alteração"
+git push -u origin feature/nome-da-alteracao
 ```
 
-Antes do push, execute `git status`, confira os arquivos staged e confirme que `.env`, chaves privadas e `node_modules` não estão incluídos. O push depende da sua conta e do acesso ao repositório.
+Abra um pull request para `main` no GitHub e integre após a revisão de outro integrante.
+
+## Cuidados antes do push
+
+Confira no `git status` que `.env`, `web/.env.local`, chaves privadas, `node_modules`,
+`.next` e `dist` não estão na lista. O `.gitignore` já exclui esses itens.

@@ -77,7 +77,7 @@ Variação (%) = ((atual - anterior) / anterior) × 100, arredondada para duas c
 - `supabase/schema.sql`: tabelas, validação de CNPJ, trigger de cadastro e políticas RLS.
 - `test`: regras de negócio e integração HTTP em memória.
 - `postman`: collection com verificações automáticas.
-- `docs`: testes e organização do GitHub.
+- `docs`: guia das rotas e organização do repositório no GitHub.
 
 ## Validação
 
@@ -95,7 +95,7 @@ npm run typecheck
 npm run build
 ```
 
-No Postman, importe `postman/monitoramento.postman_collection.json`, configure `STORAGE_MODE=memory` e inicie a API; a collection usa identificadores de empresa de teste e não envia tokens. Cada execução cria uma empresa de teste exclusiva. As 12 requisições verificam cadastro, consultas, indicadores, substituição, alteração parcial, exclusão e erros esperados. A ordem importa: a exclusão ocorre após as consultas e atualizações. No modo Firestore, os registros de teste permanecem no banco. A collection foi criada para execução pelo usuário; veja `docs/VALIDACAO.md` para o que foi efetivamente executado neste pacote.
+No Postman, importe `postman/monitoramento.postman_collection.json`, configure `STORAGE_MODE=memory` e inicie a API; a collection usa identificadores de empresa de teste e não envia tokens. Cada execução cria uma empresa de teste exclusiva. As 12 requisições verificam cadastro, consultas, indicadores, substituição, alteração parcial, exclusão e erros esperados. A ordem importa: a exclusão ocorre após as consultas e atualizações. No modo Firestore, os registros de teste permanecem no banco. A collection foi criada para execução pelo usuário.
 
 ## Referências técnicas
 
