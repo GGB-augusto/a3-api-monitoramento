@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#018D3E">
+    <meta name="description" content="Acompanhe emissões de CO₂, consumo de energia e resíduos da sua empresa.">
+    <title>VerdeMétrica — Monitoramento de CO₂</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="VerdeMétrica, início">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><path d="M25.2 6.8C15.4 6.8 8 10.1 8 18.2c0 3.7 2.5 6.3 6.1 6.3 8.3 0 11.1-9.4 11.1-17.7Z" fill="currentColor"/><path d="M5.5 27c4.1-6.1 8.9-10.2 15.4-13.2" stroke="#FDF7E6" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </span>
+          <span>verde<span class="brand-light">métrica</span></span>
+        </a>
+        <div class="topbar-note"><span class="live-dot"></span> Monitoramento de sustentabilidade</div>
+        <a class="about-link" href="#sobre">Sobre o painel <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> DADOS QUE MOVEM A MUDANÇA</p>
+            <h1>Menos carbono.<br><span>Mais futuro.</span></h1>
+            <p class="hero-description">Acompanhe o impacto da sua operação e transforme dados em escolhas mais sustentáveis.</p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+            <div class="planet"><span>CO₂</span><i></i></div>
+            <span class="art-leaf leaf-one">✳</span><span class="art-leaf leaf-two">✳</span>
+            <span class="art-caption">CADA TONELADA<br>CONTA</span>
+          </div>
+        </section>
+
+        <section class="workspace" aria-label="Painel de monitoramento">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow section-eyebrow">SEU PAINEL</p>
+              <h2>Visão geral</h2>
+            </div>
+            <form class="company-picker" id="company-form">
+              <label for="company-id">Empresa</label>
+              <div class="company-input-wrap">
+                <span aria-hidden="true">⌕</span>
+                <input id="company-id" name="empresaId" maxlength="100" pattern="[a-zA-Z0-9_-]{1,100}" placeholder="Ex.: empresa01" autocomplete="organization" required>
+                <button type="submit" class="button button-dark">Carregar <span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+          </div>
+
+          <p class="notice" id="notice" role="status" aria-live="polite"></p>
+
+          <div class="metric-grid" id="metrics" aria-live="polite">
+            <article class="metric-card co2-card">
+              <div class="metric-top"><span class="metric-icon co2-icon">CO₂</span><span class="metric-label">EMISSÕES DE CO₂</span><span class="metric-arrow" aria-hidden="true">↗</span></div>
+              <div class="metric-value" id="co2-value">— <small>t</small></div>
+              <div class="metric-foot"><span class="metric-period" id="co2-change">Aguardando dados</span><span class="metric-sub">no último período</span></div>
+              <div class="metric-decoration" aria-hidden="true"></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-icon energy-icon" aria-hidden="true">↯</span><span class="metric-label">CONSUMO DE ENERGIA</span></div>
+              <div class="metric-value" id="energy-value">— <small>kWh</small></div>
+              <div class="metric-foot"><span class="metric-period" id="energy-change">Aguardando dados</span><span class="metric-sub">no último período</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-icon waste-icon" aria-hidden="true">↻</span><span class="metric-label">RESÍDUOS GERADOS</span></div>
+              <div class="metric-value" id="waste-value">— <small>kg</small></div>
+              <div class="metric-foot"><span class="metric-period" id="waste-change">Aguardando dados</span><span class="metric-sub">no último período</span></div>
+            </article>
+          </div>
+
+          <div class="content-grid">
+            <section class="panel history-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow section-eyebrow">ACOMPANHAMENTO</p><h3>Histórico mensal</h3></div>
+                <span class="record-count" id="record-count">0 períodos</span>
+              </div>
+              <div class="chart-wrap" id="chart-wrap">
+                <div class="chart-title"><span>Emissões de CO₂</span><span class="chart-unit">toneladas</span></div>
+                <div class="chart" id="chart" aria-label="Gráfico de emissões mensais"></div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>PERÍODO</th><th>EMISSÕES CO₂</th><th>ENERGIA</th><th>RESÍDUOS</th><th><span class="sr-only">Ações</span></th></tr></thead>
+                  <tbody id="history-body"></tbody>
+                </table>
+                <div class="empty-state" id="empty-state">
+                  <span class="empty-icon" aria-hidden="true">↗</span>
+                  <h4>Seu impacto começa aqui</h4>
+                  <p>Adicione o primeiro registro mensal para acompanhar a evolução da sua empresa.</p>
+                </div>
+              </div>
+            </section>
+
+            <aside class="panel add-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow section-eyebrow">NOVO REGISTRO</p><h3>Registrar dados</h3></div>
+                <span class="add-icon" aria-hidden="true">＋</span>
+              </div>
+              <p class="form-intro">Preencha as métricas do mês para atualizar o monitoramento.</p>
+              <form id="create-form" class="data-form">
+                <label for="period">Período</label>
+                <input id="period" name="periodo" type="month" required>
+                <label for="emissions">Emissões de CO₂ <span>(toneladas)</span></label>
+                <input id="emissions" name="emissoesToneladasCO2" type="number" min="0" step="any" placeholder="Ex.: 8.5" required>
+                <label for="energy">Consumo de energia <span>(kWh)</span></label>
+                <input id="energy" name="consumoEnergiaKwh" type="number" min="0" step="any" placeholder="Ex.: 15000" required>
+                <label for="waste">Resíduos gerados <span>(kg)</span></label>
+                <input id="waste" name="residuosKg" type="number" min="0" step="any" placeholder="Ex.: 1200" required>
+                <button class="button button-primary submit-button" type="submit">Salvar registro <span aria-hidden="true">→</span></button>
+                <p class="form-feedback" id="form-feedback" role="status" aria-live="polite"></p>
+              </form>
+              <div class="privacy-note"><span aria-hidden="true">◈</span> Dados vinculados ao identificador da empresa selecionada.</div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="impact-strip" id="sobre">
+          <div class="impact-symbol" aria-hidden="true">✳</div>
+          <div><p class="eyebrow">UM FUTURO MAIS LEVE</p><h2>Medir é o primeiro passo<br>para <span>transformar.</span></h2></div>
+          <p class="impact-copy">Pequenas reduções, acompanhadas mês a mês, ajudam a construir uma operação mais consciente e eficiente.</p>
+          <a href="#company-id" class="text-link">Acompanhar meu impacto <span aria-hidden="true">↗</span></a>
+        </section>
+      </main>
+      <footer><a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true">✳</span><span>verde<span class="brand-light">métrica</span></span></a><span>Monitoramento de sustentabilidade industrial</span><span>Feito para um planeta melhor <b>♥</b></span></footer>
+    </div>
+
+    <dialog class="edit-dialog" id="edit-dialog">
+      <form id="edit-form" class="data-form">
+        <div class="dialog-heading"><div><p class="eyebrow section-eyebrow">ATUALIZAR DADOS</p><h3 id="edit-title">Editar registro</h3></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Fechar">×</button></div>
+        <p class="form-intro">Período <strong id="edit-period-label"></strong></p>
+        <label for="edit-emissions">Emissões de CO₂ <span>(toneladas)</span></label>
+        <input id="edit-emissions" name="emissoesToneladasCO2" type="number" min="0" step="any" required>
+        <label for="edit-energy">Consumo de energia <span>(kWh)</span></label>
+        <input id="edit-energy" name="consumoEnergiaKwh" type="number" min="0" step="any" required>
+        <label for="edit-waste">Resíduos gerados <span>(kg)</span></label>
+        <input id="edit-waste" name="residuosKg" type="number" min="0" step="any" required>
+        <button class="button button-primary submit-button" type="submit">Salvar alterações <span aria-hidden="true">→</span></button>
+        <p class="form-feedback" id="edit-feedback" role="status" aria-live="polite"></p>
+      </form>
+    </dialog>
+  </body>
+</html>

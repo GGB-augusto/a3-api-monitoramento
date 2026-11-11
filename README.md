@@ -4,15 +4,28 @@ Projeto acadêmico relacionado ao ODS 9. Registra consumo de energia (kWh), emis
 
 ## Executar no VS Code
 
-Requisito: Node.js 20 ou superior e npm. Extraia o ZIP e abra a pasta `api-monitoramento` no VS Code. No terminal:
+Requisito: Node.js 20 ou superior e npm. Extraia o ZIP e abra a pasta `api-monitoramento` no VS Code. Para usar o site, instale e inicie o frontend:
 
 ```powershell
+Set-Location web
 npm install
-Copy-Item .env.example .env
-npm run start:dev
+Copy-Item .env.local.example .env.local
+npm run dev
 ```
 
-No Linux/macOS, substitua `Copy-Item .env.example .env` por `cp .env.example .env`. A API atende em http://localhost:3000. O modo padrão `memory` dispensa credenciais e perde os dados ao reiniciar. Para uma instalação reproduzível, use `npm ci` quando houver package-lock.json.
+O login e o painel ficam em http://localhost:3001. O painel lê e grava os dados diretamente no Supabase, com a sessão da empresa e as políticas RLS; não é necessário iniciar a API NestJS para usar o site. Para executar ou testar também a API, abra outro terminal na pasta `api-monitoramento`, copie `.env.example` para `.env` e execute `npm install` e `npm run start:dev`; a API atende em http://localhost:3000.
+
+Antes do primeiro uso:
+
+1. No painel do Supabase, abra **SQL Editor**, cole o conteúdo de `supabase/schema.sql` e execute-o. Isso cria as tabelas, valida o CNPJ e configura o isolamento dos dados por empresa.
+2. Em **Authentication > URL Configuration**, adicione `http://localhost:3001/**` às URLs de redirecionamento permitidas.
+3. Em **Authentication > Providers > Email**, desative **Confirm email** para que as empresas possam entrar sem confirmar o endereço. O projeto não verifica se mensagens de e-mail foram entregues.
+
+A recuperação de senha continua solicitando ao Supabase o envio de um link por e-mail; a entrega depende das configurações do serviço de e-mail e não é verificada pela aplicação. Para testar esse fluxo, use a opção “Esqueceu a senha?” na tela de login.
+
+O valor `sb_publishable_...` é uma chave pública, por isso é configurado como `SUPABASE_ANON_KEY` na API e `NEXT_PUBLIC_SUPABASE_ANON_KEY` no Next.js; a segurança dos dados é aplicada pelas políticas RLS e pela autenticação, não por ocultar essa chave. O arquivo `.env.example` já seleciona `STORAGE_MODE=supabase`. Para testes locais sem conexão, altere para `STORAGE_MODE=memory`; esse modo mantém dados apenas em memória e não exige credenciais Supabase.
+
+No Linux/macOS, use `cp .env.example .env` e `cp .env.local.example .env.local`. Para uma instalação reproduzível, use `npm ci` quando houver package-lock.json.
 
 ## Firestore
 
@@ -27,7 +40,7 @@ FIREBASE_PROJECT_ID=seu-projeto
 GOOGLE_APPLICATION_CREDENTIALS=./credentials/service-account.json
 ```
 
-Reinicie a API. A coleção `registros` é criada ao inserir o primeiro documento. O SDK Admin usa as permissões IAM da conta de serviço. As credenciais devem permanecer fora do repositório. A aplicação acadêmica não implementa autenticação dos clientes e atende somente na interface local. A integração real exige credenciais válidas e não faz parte dos testes locais em memória.
+Reinicie a API. A coleção `registros` é criada ao inserir o primeiro documento. O SDK Admin usa as permissões IAM da conta de serviço. As credenciais devem permanecer fora do repositório. O modo Firestore mantém as rotas sem autenticação; somente `STORAGE_MODE=supabase` habilita a autenticação e o isolamento por empresa.
 
 ## Rotas
 
@@ -36,6 +49,12 @@ Reinicie a API. A coleção `registros` é criada ao inserir o primeiro document
 | POST | /sustentabilidade | 201, registro criado |
 | GET | /sustentabilidade/:empresaId | 200, histórico crescente por mês |
 | GET | /sustentabilidade/:empresaId/indicadores | 200, comparação dos dois últimos meses registrados |
+| GET | /sustentabilidade/:empresaId/:periodo | 200, registro de um mês; 404 se não existir |
+| PUT | /sustentabilidade/:empresaId/:periodo | 200, substitui as três métricas |
+| PATCH | /sustentabilidade/:empresaId/:periodo | 200, altera somente as métricas enviadas |
+| DELETE | /sustentabilidade/:empresaId/:periodo | 204, exclui sem corpo de resposta |
+
+Quando `STORAGE_MODE=supabase`, todas as rotas exigem `Authorization: Bearer <access_token>` e só permitem acesso ao UUID da empresa autenticada. O cadastro/login e a recuperação de senha são feitos pelo Supabase Auth no frontend.
 
 Corpo do POST:
 
@@ -52,8 +71,10 @@ Variação (%) = ((atual - anterior) / anterior) × 100, arredondada para duas c
 ## Estrutura
 
 - `src/sustentabilidade/dto`: validação da entrada.
-- `src/sustentabilidade`: controller, service e repositório em memória.
+- `src/sustentabilidade`: controller, service, autenticação Supabase e repositórios em memória/Supabase.
 - `src/firebase`: persistência no Firestore.
+- `web`: frontend Next.js de login, cadastro, recuperação de senha, histórico e indicadores.
+- `supabase/schema.sql`: tabelas, validação de CNPJ, trigger de cadastro e políticas RLS.
 - `test`: regras de negócio e integração HTTP em memória.
 - `postman`: collection com verificações automáticas.
 - `docs`: testes e organização do GitHub.
@@ -66,10 +87,58 @@ npm run build
 npm run test:cov
 ```
 
-No Postman, importe `postman/monitoramento.postman_collection.json`, inicie a API e execute a collection inteira na ordem pelo Runner. Cada execução cria uma empresa de teste exclusiva. As seis requisições verificam as três rotas e os erros de duplicidade e mês inválido. No modo Firestore, os registros de teste permanecem no banco. A collection foi criada para execução pelo usuário; veja `docs/VALIDACAO.md` para o que foi efetivamente executado neste pacote.
+Para validar o frontend:
+
+```powershell
+Set-Location web
+npm run typecheck
+npm run build
+```
+
+No Postman, importe `postman/monitoramento.postman_collection.json`, configure `STORAGE_MODE=memory` e inicie a API; a collection usa identificadores de empresa de teste e não envia tokens. Cada execução cria uma empresa de teste exclusiva. As 12 requisições verificam cadastro, consultas, indicadores, substituição, alteração parcial, exclusão e erros esperados. A ordem importa: a exclusão ocorre após as consultas e atualizações. No modo Firestore, os registros de teste permanecem no banco. A collection foi criada para execução pelo usuário; veja `docs/VALIDACAO.md` para o que foi efetivamente executado neste pacote.
 
 ## Referências técnicas
 
 - https://docs.nestjs.com/techniques/validation
 - https://firebase.google.com/docs/admin/setup
 - https://firebase.google.com/docs/firestore/quickstart
+
+
+## Atualização e exclusão de registros
+
+As rotas existentes continuam disponíveis. As novas rotas usam empresa e período
+como identidade imutável do registro:
+
+| Método | Rota | Comportamento |
+| --- | --- | --- |
+| PUT | /sustentabilidade/:empresaId/:periodo | Substitui todas as três métricas |
+| PATCH | /sustentabilidade/:empresaId/:periodo | Atualiza apenas as métricas enviadas |
+| DELETE | /sustentabilidade/:empresaId/:periodo | Exclui o registro e retorna 204 sem corpo |
+
+Exemplo de URL: `http://localhost:3000/sustentabilidade/empresa01/2026-09`.
+
+Corpo do PUT (todos os campos obrigatórios):
+
+```json
+{"consumoEnergiaKwh": 13000, "emissoesToneladasCO2": 7.2, "residuosKg": 1000}
+```
+
+Corpo do PATCH (pelo menos uma métrica):
+
+```json
+{"residuosKg": 900}
+```
+
+DELETE não recebe corpo. PUT e PATCH retornam 200 com o registro atualizado;
+preservam id, empresaId, periodo e criadoEm e retornam atualizadoEm (data UTC no formato ISO 8601). Registro inexistente retorna 404.
+Corpos vazios no PATCH, campos desconhecidos, valores nulos, negativos ou de tipo
+incorreto retornam 400. Os indicadores refletem os registros atualizados e excluídos.
+Para mudar empresa ou período, exclua o registro antigo e cadastre outro.
+As operações estão implementadas em memória e no Firestore; no Firestore, atualização
+e exclusão verificam a existência dentro de uma transação.
+
+## Guia de uso das rotas
+
+Veja `docs/ROTAS.md` para exemplos, códigos HTTP e localização do código.
+O arquivo `requests.http`, na raiz, contém requisições para a extensão REST Client
+(opcional) do VS Code. Também é possível testar com o Postman sem instalar essa extensão.

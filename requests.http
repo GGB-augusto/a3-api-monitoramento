@@ -1,0 +1,48 @@
+# Opcional: instale a extensão REST Client no VS Code e clique em Send Request.
+# Execute na ordem. POST repetido retorna 409; DELETE só deve ser executado no fim.
+@baseUrl = http://localhost:3000
+@empresaId = empresa01
+@periodo = 2026-09
+
+### 1. Cadastrar
+POST {{baseUrl}}/sustentabilidade
+Content-Type: application/json
+
+{
+  "empresaId": "{{empresaId}}",
+  "periodo": "{{periodo}}",
+  "consumoEnergiaKwh": 15000,
+  "emissoesToneladasCO2": 8.5,
+  "residuosKg": 1200
+}
+
+### 2. Consultar mês
+GET {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}
+
+### 3. Substituir todas as métricas
+PUT {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}
+Content-Type: application/json
+
+{
+  "consumoEnergiaKwh": 13000,
+  "emissoesToneladasCO2": 7.2,
+  "residuosKg": 1000
+}
+
+### 4. Alterar só os resíduos
+PATCH {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}
+Content-Type: application/json
+
+{ "residuosKg": 900 }
+
+### 5. Conferir alteração
+GET {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}
+
+### 6. Histórico
+GET {{baseUrl}}/sustentabilidade/{{empresaId}}
+
+### 7. Excluir
+DELETE {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}
+
+### 8. Conferir exclusão (404 esperado)
+GET {{baseUrl}}/sustentabilidade/{{empresaId}}/{{periodo}}

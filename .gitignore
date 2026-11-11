@@ -1,9 +1,12 @@
 node_modules/
 dist/
 coverage/
+.next/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
+!.env.local.example
 credentials/
 *service-account*.json
 *.log
